@@ -50,11 +50,10 @@ public class TodoActivity extends Activity {
 			String toDoItemUpdate = data.getExtras().getString(
 					"todo_item_update");
 			int pos = data.getExtras().getInt("todo_item_pos");
-			//remove old entry
-			items.remove(pos);
-			itemsAdapter.notifyDataSetInvalidated();
-			//add the modified item in the list at same position
-			items.add(pos, toDoItemUpdate);
+			//replace updated todo_item at specified position
+			items.set(pos, toDoItemUpdate);
+			//notify the adapter
+			itemsAdapter.notifyDataSetChanged();
 			//save the results
 			FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
 		}
