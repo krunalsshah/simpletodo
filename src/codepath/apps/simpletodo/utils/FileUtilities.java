@@ -20,7 +20,6 @@ public class FileUtilities {
 		try {
 			return new ArrayList<String>(FileUtils.readLines(toDoFile, "UTF-8"));
 		} catch (IOException ioe) {
-			Log.e(TAG, ioe.getMessage());
 			return new ArrayList<String>();
 		}
 	}

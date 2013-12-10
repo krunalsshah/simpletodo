@@ -3,10 +3,12 @@ package codepath.apps.simpletodo;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -20,6 +22,7 @@ public class TodoActivity extends Activity {
 	ArrayAdapter<String> itemsAdapter;
 	ListView lvItems;
 	private static final String FILENAME = "todo.txt";
+	private final int REQUEST_CODE = 20;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -40,16 +43,34 @@ public class TodoActivity extends Activity {
 		return true;
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+			// Extract extras value from result
+			String toDoItemUpdate = data.getExtras().getString(
+					"todo_item_update");
+			int pos = data.getExtras().getInt("todo_item_pos");
+			//remove old entry
+			items.remove(pos);
+			itemsAdapter.notifyDataSetInvalidated();
+			//add the modified item in the list at same position
+			items.add(pos, toDoItemUpdate);
+			//save the results
+			FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
+		}
+	}
+
 	public void addTodoItem(View v) {
 		EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
 		String toDoItem = etNewItem.getText().toString();
-		//Restrict adding empty todo items
-		if(!(toDoItem == null || toDoItem.isEmpty())){
+		// Restrict adding empty todo items
+		if (!(toDoItem == null || toDoItem.isEmpty())) {
 			itemsAdapter.add(etNewItem.getText().toString());
 			etNewItem.setText("");
 			FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
-		}else{
-			Toast.makeText(this, "TO DO items must contain text", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(this, "TO DO items must contain text",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -60,9 +81,24 @@ public class TodoActivity extends Activity {
 					int pos, long id) {
 				items.remove(pos);
 				itemsAdapter.notifyDataSetInvalidated();
-				FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
+				FileUtilities.saveItems(getApplicationContext(), FILENAME,
+						items);
 				return true;
 			}
 		});
+
+		//Support Edit Action
+		lvItems.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+					long arg3) {
+				Intent launchEditActivity = new Intent(TodoActivity.this,
+						EditItemActivity.class);
+				launchEditActivity.putExtra("todo_item_text", items.get(arg2));
+				launchEditActivity.putExtra("todo_item_pos", arg2);
+				startActivityForResult(launchEditActivity, REQUEST_CODE);
+			}
+		});
 	}
+
 }
