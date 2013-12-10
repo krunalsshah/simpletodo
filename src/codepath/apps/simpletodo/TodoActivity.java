@@ -1,9 +1,9 @@
 package codepath.apps.simpletodo;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,19 +12,21 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import codepath.apps.simpletodo.utils.FileUtilities;
 
 public class TodoActivity extends Activity {
 
-	ArrayList<String> items;
+	List<String> items;
 	ArrayAdapter<String> itemsAdapter;
 	ListView lvItems;
+	private static final String FILENAME = "todo.txt";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_todo);
 		lvItems = (ListView) findViewById(R.id.lvItems);
-		items = new ArrayList<String>();
+		items = FileUtilities.readItems(getApplicationContext(), FILENAME);
 		itemsAdapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, items);
 		lvItems.setAdapter(itemsAdapter);
@@ -41,9 +43,11 @@ public class TodoActivity extends Activity {
 	public void addTodoItem(View v) {
 		EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
 		String toDoItem = etNewItem.getText().toString();
+		//Restrict adding empty todo items
 		if(!(toDoItem == null || toDoItem.isEmpty())){
 			itemsAdapter.add(etNewItem.getText().toString());
 			etNewItem.setText("");
+			FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
 		}else{
 			Toast.makeText(this, "TO DO items must contain text", Toast.LENGTH_SHORT).show();
 		}
@@ -56,6 +60,7 @@ public class TodoActivity extends Activity {
 					int pos, long id) {
 				items.remove(pos);
 				itemsAdapter.notifyDataSetInvalidated();
+				FileUtilities.saveItems(getApplicationContext(), FILENAME, items);
 				return true;
 			}
 		});
